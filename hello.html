@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Location</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    .container h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px 0;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      background: #007BFF;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .output {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Find My Location</h1>
+    <button class="btn" id="getLocation">Get Location</button>
+    <div class="output" id="output">
+      Click the button to get your real-time location.
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("getLocation").addEventListener("click", () => {
+      const output = document.getElementById("output");
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            output.innerHTML = `<p><strong>Latitude:</strong> ${latitude}</p>
+                                <p><strong>Longitude:</strong> ${longitude}</p>
+                                <p>Fetching address...</p>`;
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+              .then(response => response.json())
+              .then(data => {
+                const address = data.display_name;
+                output.innerHTML += `<p><strong>Address:</strong> ${address}</p>`;
+              })
+              .catch(() => {
+                output.innerHTML += `<p>Could not fetch the address.</p>`;
+              });
+          },
+          (error) => {
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                output.textContent = "User denied the request for Geolocation.";
+                break;
+              case error.POSITION_UNAVAILABLE:
+                output.textContent = "Location information is unavailable.";
+                break;
+              case error.TIMEOUT:
+                output.textContent = "The request to get user location timed out.";
+                break;
+              case error.UNKNOWN_ERROR:
+                output.textContent = "An unknown error occurred.";
+                break;
+            }
+          }
+        );
+      } else {
+        output.textContent = "Geolocation is not supported by this browser.";
+      }
+    });
+  </script>
+</body>
+</html>
